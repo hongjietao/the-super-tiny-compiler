@@ -836,6 +836,7 @@ function parser(tokens) {
 
   // Now, we're going to create our AST which will have a root which is a
   // `Program` node.
+  // 现在，我们将创建我们的AST，它的根是一个`Program`节点
   let ast = {
     type: 'Program',
     body: [],
@@ -872,7 +873,9 @@ function parser(tokens) {
  * So now we have our AST, and we want to be able to visit different nodes with
  * a visitor. We need to be able to call the methods on the visitor whenever we
  * encounter a node with a matching type.
- *
+ * 现在我们有了抽象语法树（AST），我们想要通过访问器来访问不同的节点。  
+ * 当我们遇到与类型匹配的节点时，我们需要能够调用访问器上的方法。  
+ *  
  *   traverse(ast, {
  *     Program: {
  *       enter(node, parent) {
@@ -905,10 +908,13 @@ function parser(tokens) {
 
 // So we define a traverser function which accepts an AST and a
 // visitor. Inside we're going to define two functions...
+// 因此，我们定义了一个遍历器函数，该函数接受一个抽象语法树（AST）和一个访问器。  
+// 在遍历器函数内部，我们将定义两个函数...  
 function traverser(ast, visitor) {
 
   // A `traverseArray` function that will allow us to iterate over an array and
   // call the next function that we will define: `traverseNode`.
+  // `traverseArray` 函数将允许我们遍历一个数组，并调用我们接下来将要定义的 `traverseNode` 函数。  
   function traverseArray(array, parent) {
     array.forEach(child => {
       traverseNode(child, parent);
@@ -917,50 +923,61 @@ function traverser(ast, visitor) {
 
   // `traverseNode` will accept a `node` and its `parent` node. So that it can
   // pass both to our visitor methods.
+  // `traverseNode` 将接受一个 `node`（节点）及其 `parent`（父节点），这样它就可以将两者都传递给我们的访问器方法。  
   function traverseNode(node, parent) {
 
     // We start by testing for the existence of a method on the visitor with a
     // matching `type`.
+    // 我们首先测试访问器上是否存在一个与 `node.type` 相匹配的方法。 
     let methods = visitor[node.type];
 
     // If there is an `enter` method for this node type we'll call it with the
     // `node` and its `parent`.
+    // 如果该节点类型存在 `enter` 方法，我们将使用 `node` 和其 `parent` 调用它。  
     if (methods && methods.enter) {
       methods.enter(node, parent);
     }
 
     // Next we are going to split things up by the current node type.
+    // 接下来，我们将根据当前节点类型进行拆分处理。
     switch (node.type) {
 
       // We'll start with our top level `Program`. Since Program nodes have a
       // property named body that has an array of nodes, we will call
       // `traverseArray` to traverse down into them.
-      //
+      // 我们从顶级 `Program` 开始。由于 `Program` 节点具有一个名为 `body` 的属性，该属性包含一个节点数组，  
+      // 我们将调用 `traverseArray` 来遍历它们。  
+      // 
       // (Remember that `traverseArray` will in turn call `traverseNode` so  we
       // are causing the tree to be traversed recursively)
+      // （请记住，`traverseArray` 将转而调用 `traverseNode`，因此我们将导致树被递归遍历）  
       case 'Program':
         traverseArray(node.body, node);
         break;
 
       // Next we do the same with `CallExpression` and traverse their `params`.
+      // 接下来，我们对 `CallExpression` 执行相同的操作，并遍历其 `params`。  
       case 'CallExpression':
         traverseArray(node.params, node);
         break;
 
       // In the cases of `NumberLiteral` and `StringLiteral` we don't have any
       // child nodes to visit, so we'll just break.
+      // 在 `NumberLiteral` 和 `StringLiteral` 的情况下，我们没有要访问的子节点，因此我们将直接跳出。  
       case 'NumberLiteral':
       case 'StringLiteral':
         break;
 
       // And again, if we haven't recognized the node type then we'll throw an
       // error.
+      // 同样，如果我们没有识别出节点类型，我们将抛出一个错误。 
       default:
         throw new TypeError(node.type);
     }
 
     // If there is an `exit` method for this node type we'll call it with the
     // `node` and its `parent`.
+    // 最后，如果该节点类型存在 `exit` 方法，我们将使用 `node` 和其 `parent` 调用它。  
     if (methods && methods.exit) {
       methods.exit(node, parent);
     }
@@ -968,6 +985,8 @@ function traverser(ast, visitor) {
 
   // Finally we kickstart the traverser by calling `traverseNode` with our ast
   // with no `parent` because the top level of the AST doesn't have a parent.
+  // 最后，我们通过使用 ast 作为参数调用 `traverseNode` 来启动遍历器，  
+  // 不传入 `parent` 参数，因为 AST 的顶层节点没有父节点。 
   traverseNode(ast, null);
 }
 
@@ -982,6 +1001,8 @@ function traverser(ast, visitor) {
  * Next up, the transformer. Our transformer is going to take the AST that we
  * have built and pass it to our traverser function with a visitor and will
  * create a new ast.
+ * 下一步，我们进行转换。我们的转换器将采用我们构建的 AST，  
+ * 并将其与访问者一起传递给遍历器函数，从而创建一个新的 AST。  
  *
  * ----------------------------------------------------------------------------
  *   Original AST                     |   Transformed AST
